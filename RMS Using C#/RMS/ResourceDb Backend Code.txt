@@ -1,0 +1,245 @@
+
+-- ResourceDb Backend Code ( Tables and Procedures ) 
+
+
+
+create database ResourceDb
+
+use Resourcedb
+
+create table Department
+(
+Id int primary key identity,
+Name varchar(20),
+Address varchar(200)
+)
+
+insert into department values('Income Tax','ITO')
+insert into department values('Central Excise','Connaught Place')
+insert into department values('Banking','Rajouri Garden')
+insert into department values('Delhi Police','Dwarka')
+insert into department values('Teaching','GTB Nagar')
+
+select *
+from Department
+
+create table Resource
+(
+Id int primary key identity,
+FirstName varchar(30),
+LastName varchar(30),
+Gender char(6),
+ContactNumber char(10),
+AadharId char(12),
+EmailId varchar(50),
+Username varchar(50),
+Password varchar(50),
+DateOfBirth date,
+Salary float,
+Address varchar(200),
+DepartmentId int foreign key references Department(Id)
+)
+
+insert into Resource values('Rohit','Sharma','Male','9999401240','377532155855','visitrohitsharma@gmail.com','rohitsharma2702','Rohit@123','01/Jul/1994',1000000,'Dwarka, New Delhi',1)
+insert into Resource values('Scott','Adkins','Male','9810542702','377532155856','scott@gmail.com','scott2702','Scott@123','23/Feb/1994',2000000,'London',4)
+insert into Resource values('Jason','Statham','Male','7011237474','377532155857','jason@gmail.com','jason2702','Jason@123','11/Dec/1994',3000000,'Manchester',2)
+insert into Resource values('Sylvester','Stallone','Male','9582893970','377532155858','sylvester@gmail.com','sylvester2702','Sylvester@123','18/Aug/1994',4000000,'Texas',4)
+insert into Resource values('Jackie','Chan','Male','9560631122','377532155859','jackie@gmail.com','jackie2702','Jackie@123','26/Nov/1994',5000000,'New York',3)
+insert into Resource values('Kiran','Bedi','Female','9871403020','377532155860','kiran@gmail.com','kiran2702','Kiran@123','18/Aug/1994',6000000,'Palam Colony',2)
+
+
+select *
+from Resource
+
+
+create proc spInsertResource
+@FirstName varchar(30),
+@LastName varchar(30),
+@Gender char(6),
+@ContactNumber char(10),
+@AadharId char(12),
+@EmailId varchar(50),
+@Username varchar(50),
+@Password varchar(50),
+@DateOfBirth date,
+@Salary float,
+@Address varchar(200),
+@DepartmentId int,
+@Message varchar(50) out
+as
+begin 
+	insert into Resource values(@FirstName,@LastName,@Gender,@ContactNumber,@AadharId,@EmailId,@Username,@Password,@DateOfBirth,@Salary,@Address,@DepartmentId)
+		if @@ROWCOUNT > 0
+			set @Message = 'Record Inserted Successfully...'
+		else
+			set @Message = 'Sorry!!! Record Couldn''t be Inserted...'	
+end
+
+
+begin tran
+declare @msg varchar(50)
+exec spInsertResource 'Rakesh2','Yadav','Male','8285828272','377532155863','rakesh@gmail.com','rakesh2702','Rakesh@123','31/Dec/1994',1200000,'Mukherjee Nagar',5,@msg out
+print @msg
+rollback
+
+
+select *
+from Resource
+
+create proc spUpdateResource
+@Id int,
+@FirstName varchar(30),
+@LastName varchar(30),
+@Gender char(6),
+@ContactNumber char(10),
+@AadharId char(12),
+@EmailId varchar(50),
+@Username varchar(50),
+@Password varchar(50),
+@DateOfBirth date,
+@Salary float,
+@Address varchar(200),
+@DepartmentId int,
+@Message varchar(50) out
+as
+begin 
+	update Resource 
+	set FirstName = @FirstName,
+		LastName = @LastName,
+		Gender = @Gender,
+		ContactNumber = @ContactNumber,
+		AadharId = @AadharId,
+		EmailId = @EmailId,
+		Username = @Username,
+		Password = @Password,
+		DateOfBirth = @DateOfBirth,
+		Salary = @Salary,
+		Address = @Address, 
+		DepartmentId = @DepartmentId
+		where Id = @Id
+		if @@ROWCOUNT > 0
+			set @Message = 'Record Updated Successfully...'
+		else
+			set @Message = 'Sorry!!! Record Couldn''t be Updated...'	
+end
+
+begin tran
+declare @msg varchar(50)
+exec spUpdateResource 7,'Rakesh2','Yadav','Male','8285828272','377532155863','rakesh@gmail.com','rakesh2702','Rakesh@123','31/Dec/1994',1200000,'Mukherjee Nagar',5,@msg out
+print @msg
+rollback
+
+select *
+from Resource
+
+
+create proc spDeleteResource
+@Id int,
+@Message varchar(50) out
+as
+begin 
+	delete from Resource where Id = @Id
+		if @@ROWCOUNT > 0
+			set @Message = 'Record Deleted Successfully...'
+		else
+			set @Message = 'Sorry!!! Record Couldn''t be Deleted...'	
+end
+
+
+begin tran
+declare @msg varchar(50)
+exec spDeleteResource 7,@msg out
+print @msg
+rollback
+
+select *
+from Resource
+
+
+create proc spSelectResource
+@Id int,
+@Message varchar(50) out
+as
+begin
+	select Id,FirstName,LastName,Gender,ContactNumber,AadharId,EmailId,Username,Password,DateOfBirth,Salary,Address,DepartmentId
+	from Resource
+	where Id = @Id
+		if @@ROWCOUNT > 0
+			set @Message = 'Record Retrieved Successfully...'
+		else
+			set @Message = 'Sorry!!! Record Couldn''t be Retrieved...'	
+end
+
+
+declare @msg varchar(50)
+exec spSelectResource 7,@msg out
+print @msg
+
+
+create proc spSelectResources
+@Message varchar(50) out
+as
+begin
+	select Id,FirstName,LastName,Gender,ContactNumber,AadharId,EmailId,Username,Password,DateOfBirth,Salary,Address,DepartmentId
+	from Resource
+		if @@ROWCOUNT > 0
+			set @Message = 'Record(s) Retrieved Successfully...'
+		else
+			set @Message = 'Sorry!!! Record(s) Couldn''t be Retrieved...'	
+end
+
+
+declare @msg varchar(50)
+exec spSelectResources @msg out
+print @msg
+
+
+create proc spLogin
+@Username varchar(50),
+@Password varchar(50),
+@Message varchar(50) out
+as
+begin
+	declare @Count int
+	select @Count = count(*)
+	from Resource
+	where Username = @Username
+	and Password = @Password
+		if @Count > 0
+			set @Message = 'Login Successful...'
+		else
+			set @Message = 'Sorry!!! Invalid Credentials...'	
+		select @count as 'Users Count'
+end
+
+
+declare @msg varchar(50)
+exec splogin 'rohitsharma2702','rohit@123',@msg out
+print @msg
+
+
+select *
+from resource
+
+
+create proc spRecoverPassword
+@Username varchar(50),
+@Message varchar(50) out
+as
+begin
+	declare @pass varchar(50)
+	select @pass = Password
+	from Resource
+	where Username = @Username
+		if @pass is null
+			set @Message = 'Invalid Username...'
+		else
+			set @Message = 'Your Password is :       ' + @pass
+end
+
+
+declare @msg varchar(50)
+exec spRecoverPassword 'rohitsharma2702',@msg out
+print @msg
+
+
